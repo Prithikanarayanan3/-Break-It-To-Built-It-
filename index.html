@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Break It to Build It | Socratic Debugging Lab</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Custom Light-Mode Educational Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- ========================================================================= -->
+  <!-- 1. TOP NAVIGATION BAR                                                     -->
+  <!-- ========================================================================= -->
+  <header class="h-16 bg-white border-b border-slate-200 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-40 shadow-xs">
+    
+    <!-- LEFT: Logo & Subtitle -->
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+        🎓
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-base text-slate-900 tracking-tight">Break It to Build It</span>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hidden sm:inline">
+            CS Educational Lab
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 hidden sm:block">Interactive Socratic Debugging Platform</p>
+      </div>
+    </div>
+
+    <!-- MIDDLE: 3 Top-Level Navigation Tabs -->
+    <nav class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+      <button id="tabBtnSandbox" class="nav-tab-pill active" title="Interactive Code Editor & Concept Question Bank">
+        <span>💻 Practice Sandbox</span>
+      </button>
+      <button id="tabBtnBuilder" class="nav-tab-pill inactive" title="Build Timed Custom Mock Assessments">
+        <span>⏱️ Custom Interview Builder</span>
+      </button>
+      <button id="tabBtnAnalytics" class="nav-tab-pill inactive" title="View Statistical Performance & Logs">
+        <span>📊 Daily Analytics &amp; Progress</span>
+      </button>
+    </nav>
+
+    <!-- RIGHT: AI Assistant Toggle & Student Badge -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Clover AI Assistant Mode Toggle Button -->
+      <button id="aiModeToggleBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all shadow-2xs" title="Toggle Clover - Socratic AI Debugger">
+        <span class="text-sm">🍀</span>
+        <span class="hidden md:inline">Clover AI Mode</span>
+      </button>
+
+      <!-- Student Profile Badge -->
+      <div class="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+        <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">
+          CS
+        </div>
+        <div class="text-xs hidden lg:block">
+          <span class="font-semibold text-slate-800">Student ID: CS-2026</span>
+          <span class="text-slate-400 mx-1">•</span>
+          <span id="studentXpBadge" class="text-emerald-600 font-semibold font-mono">840 XP</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 1: PRACTICE SANDBOX (CURRENT VIEW)                                    -->
+  <!-- ========================================================================= -->
+  <div id="viewPracticeSandbox" class="flex-1 flex flex-col">
+    
+    <!-- Sub-Header Controls Bar (Language, Difficulty, Question Navigator) -->
+    <div id="sandboxSubHeader" class="bg-white border-b border-slate-200 px-4 lg:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 text-xs">
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <!-- Language Selector (10 Languages) -->
+        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 shadow-2xs">
+          <label for="langSelect" class="font-semibold text-slate-500">Language:</label>
+          <select id="langSelect" class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer">
+            <option value="python">Python</option>
+            <option value="c">C</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="csharp">C#</option>
+            <option value="php">PHP</option>
+          </select>
+        </div>
+
+        <!-- Difficulty Selector -->
+        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 shadow-2xs">
+          <label for="difficultySelect" class="font-semibold text-slate-500">Difficulty:</label>
+          <select id="difficultySelect" class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer">
+            <option value="easy">Easy Level</option>
+            <option value="medium">Medium Level</option>
+            <option value="hard">Hard Level</option>
+            <option value="interview">Interview Level</option>
+          </select>
+        </div>
+
+        <!-- Question Navigation Controls (30+ Questions per Level) -->
+        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5 shadow-2xs">
+          <button id="prevQuestionBtn" class="px-2 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded transition-colors" title="Previous Question">
+            ◀
+          </button>
+          <div class="px-1.5 flex items-center">
+            <select id="questionSelect" class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[200px] truncate">
+              <!-- Dynamically populated 1 to 30 -->
+            </select>
+          </div>
+          <button id="nextQuestionBtn" class="px-2 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded transition-colors" title="Next Question">
+            ▶
+          </button>
+        </div>
+
+        <!-- Load Sample Button -->
+        <button id="loadSampleBtn" class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs">
+          <span>Load Sample</span>
+        </button>
+      </div>
+
+      <!-- Quick Concept Indicator -->
+      <div class="flex items-center gap-2 text-slate-500">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="font-mono text-[11px]">30 Concept Bank Active</span>
+      </div>
+    </div>
+
+    <!-- Main Sandbox Workspace (Split Screen Layout) -->
+    <main class="flex-1 p-3 lg:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-[1780px] w-full mx-auto">
+      
+      <!-- LEFT PANEL: Code Editor Box & Actions (Cols 7) -->
+      <div class="lg:col-span-7 flex flex-col gap-3 min-h-[620px]">
+        
+        <!-- Editor Card -->
+        <div class="edu-card flex-1 flex flex-col overflow-hidden">
+          
+          <!-- Editor Header Bar -->
+          <div class="h-12 bg-slate-50/80 border-b border-slate-200 px-4 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <h2 id="bugTitle" class="font-bold text-sm text-slate-800">Off-by-One Loop Error</h2>
+              <span id="bugCategoryBadge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                Loop Boundary
+              </span>
+            </div>
+
+            <!-- Dual Mode Toggle (Sample Bug vs Custom Paste) -->
+            <div class="flex items-center gap-1.5 bg-slate-200/70 p-0.5 rounded-lg">
+              <button id="modeSampleBtn" class="px-3 py-1 text-xs font-semibold rounded-md bg-white text-emerald-700 shadow-2xs border border-slate-200 transition-all">
+                Sample Template
+              </button>
+              <button id="modeCustomBtn" class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 transition-all">
+                Paste Code
+              </button>
+            </div>
+          </div>
+
+          <!-- Problem Description Strip -->
+          <div class="bg-blue-50/50 border-b border-blue-100 px-4 py-2 flex items-center justify-between text-xs text-slate-600">
+            <p id="bugDescription" class="truncate pr-2">The loop checks i <= scores.length, causing an index out-of-bounds error on the last iteration.</p>
+            <button id="resetCodeBtn" class="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap text-[11px]">
+              Reset Code
+            </button>
+          </div>
+
+          <!-- Inline Error Banner (Hidden until analyzed) -->
+          <div id="errorAlertBanner" class="p-3 bg-red-50 border-b border-red-200 text-red-800 text-xs flex items-center justify-between hidden">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-red-600"></span>
+              <span class="font-bold">Error Detected:</span>
+              <span id="errorAlertMessage">Line 7: Loop condition uses '<=' instead of '<'</span>
+            </div>
+            <span class="text-[10px] bg-red-100 px-2 py-0.5 rounded font-semibold text-red-700">INDEX BOUND</span>
+          </div>
+
+          <!-- Editor Work Area -->
+          <div class="flex-1 flex overflow-hidden bg-white relative">
+            <!-- Line Numbers Column -->
+            <div id="lineNumbers" class="w-12 bg-slate-50 border-r border-slate-200 py-3 select-none text-right overflow-hidden">
+              <!-- Line numbers populated by JS -->
+            </div>
+
+            <!-- Code Textarea -->
+            <textarea id="codeEditor" spellcheck="false" class="flex-1 p-3 font-mono text-xs md:text-sm text-slate-800 leading-6 resize-none focus:outline-none bg-transparent whitespace-pre overflow-y-auto selection:bg-blue-100"></textarea>
+          </div>
+
+          <!-- Bottom Action Bar -->
+          <div class="h-14 bg-slate-50 border-t border-slate-200 px-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Run Code Button -->
+              <button id="runCodeBtn" class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-2xs transition-colors">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4.5 3.5v13l11-6.5-11-6.5z"/></svg>
+                <span>Run Code</span>
+              </button>
+
+              <!-- Analyze Bugs Button -->
+              <button id="analyzeBugsBtn" class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span>Analyze Bugs</span>
+              </button>
+
+              <!-- Analyze Line with Clover -->
+              <button id="analyzeLineBtn" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs transition-colors" title="Analyze currently selected line with Clover">
+                <span>🍀 Analyze Line</span>
+              </button>
+
+              <!-- Auto-Fix Button -->
+              <button id="autoFixBtn" class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Auto-Fix</span>
+              </button>
+            </div>
+
+            <div id="activeLineInfo" class="text-[11px] font-mono text-slate-500 hidden md:block">
+              Line 1 active • Click gutter line to inspect
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT PANEL: Performance Graph, Output & Tests (Cols 5) -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        
+        <!-- TOP: System Performance Chart (Clean Line Graph) -->
+        <div class="edu-card p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wide">System Performance</h3>
+              <span id="systemLoadBadge" class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                System Load: Normal
+              </span>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex items-center gap-3 text-xs">
+              <span class="flex items-center gap-1 font-medium text-blue-600">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> CPU: <span id="cpuValueText" class="font-mono">14%</span>
+              </span>
+              <span class="flex items-center gap-1 font-medium text-amber-600">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span> Memory: <span id="memValueText" class="font-mono">48 MB</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Clean Canvas Line Chart -->
+          <div class="h-28 w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 relative">
+            <canvas id="systemPerformanceChart" width="400" height="100" class="w-full h-full"></canvas>
+          </div>
+        </div>
+
+        <!-- MIDDLE: Standard Output (Console) -->
+        <div class="edu-card flex-1 flex flex-col overflow-hidden min-h-[160px]">
+          <div class="h-9 bg-slate-100 border-b border-slate-200 px-3.5 flex items-center justify-between text-xs font-semibold text-slate-700">
+            <span class="flex items-center gap-1.5">
+              <span>Terminal</span>
+              <span class="text-slate-400 font-normal">• Standard Output</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">Process Sandbox</span>
+          </div>
+          <div class="flex-1 p-3 edu-console overflow-y-auto">
+            <pre id="consoleOutput" class="text-slate-400 font-mono text-xs whitespace-pre-wrap">// Ready to run. Click 'Run Code' or 'Analyze Bugs' to inspect output.</pre>
+          </div>
+        </div>
+
+        <!-- BOTTOM: Test Case Results -->
+        <div class="edu-card p-4">
+          <div class="flex items-center justify-between mb-2.5">
+            <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wide">Test Case Results</h3>
+            <span class="text-xs text-slate-500">Suite: 3 Test Invariants</span>
+          </div>
+          <div id="testCasesContainer" class="space-y-2">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 2: CUSTOM INTERVIEW BUILDER                                           -->
+  <!-- ========================================================================= -->
+  <div id="viewInterviewBuilder" class="flex-1 flex flex-col hidden p-4 lg:p-6 max-w-[1400px] w-full mx-auto">
+    
+    <!-- SECTION A: Configuration & Assessment Generator Form -->
+    <div id="builderConfigSection" class="space-y-5">
+      
+      <!-- Header Banner -->
+      <div class="edu-card p-5 bg-gradient-to-r from-blue-50 via-indigo-50/50 to-white border-blue-200">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">⏱️</span>
+              <h2 class="text-xl font-bold text-slate-900">Custom Coding Interview Builder</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                Mock Assessment Mode
+              </span>
+            </div>
+            <p class="text-xs text-slate-600 mt-1">
+              Assemble a personalized timed technical assessment targeting specific languages and conceptual difficulty distributions.
+            </p>
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500 hidden sm:inline">Presets:</span>
+            <button onclick="applyInterviewPreset('junior')" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs text-slate-700">
+              Junior (5 Qs • 30m)
+            </button>
+            <button onclick="applyInterviewPreset('mid')" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs text-slate-700">
+              Mid-Level (8 Qs • 45m)
+            </button>
+            <button onclick="applyInterviewPreset('senior')" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs text-slate-700">
+              Senior Gauntlet (10 Qs • 60m)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Configuration Form Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Left Column: Controls (Cols 7) -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- Card 1: Language & Total Count -->
+          <div class="edu-card p-5 space-y-4">
+            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+              <span>1. Target Language &amp; Scope</span>
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Target Language -->
+              <div>
+                <label for="builderTargetLang" class="block text-xs font-semibold text-slate-700 mb-1.5">Assessment Language</label>
+                <select id="builderTargetLang" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer">
+                  <option value="python">Python</option>
+                  <option value="c">C</option>
+                  <option value="cpp">C++</option>
+                  <option value="java">Java</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="typescript">TypeScript</option>
+                  <option value="go">Go</option>
+                  <option value="rust">Rust</option>
+                  <option value="csharp">C#</option>
+                  <option value="php">PHP</option>
+                </select>
+                <p class="text-[11px] text-slate-500 mt-1">Select language syntax for generated bugs.</p>
+              </div>
+
+              <!-- Question Count -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label for="builderQuestionCount" class="text-xs font-semibold text-slate-700">Question Count</label>
+                  <span id="builderQuestionCountBadge" class="text-xs font-bold font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">8 Questions</span>
+                </div>
+                <input id="builderQuestionCount" type="range" min="1" max="20" value="8" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                  <span>1 Question</span>
+                  <span>10</span>
+                  <span>20 Questions</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Difficulty Distribution Breakdown -->
+          <div class="edu-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">
+                <span>2. Difficulty Distribution Breakdown</span>
+              </h3>
+              <span id="distributionBalanceBadge" class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Balanced (8/8)
+              </span>
+            </div>
+
+            <!-- Visual Distribution Bar -->
+            <div class="w-full h-2.5 rounded-full overflow-hidden bg-slate-100 flex" id="distributionProgressBar">
+              <div id="barEasy" class="bg-green-500 h-full transition-all" style="width: 25%;" title="Easy"></div>
+              <div id="barMedium" class="bg-blue-500 h-full transition-all" style="width: 37.5%;" title="Medium"></div>
+              <div id="barHard" class="bg-amber-500 h-full transition-all" style="width: 25%;" title="Hard"></div>
+              <div id="barInterview" class="bg-red-500 h-full transition-all" style="width: 12.5%;" title="Interview"></div>
+            </div>
+
+            <!-- Stepper Counters for each level -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <!-- Easy -->
+              <div class="p-2.5 bg-green-50/60 border border-green-200 rounded-lg text-center">
+                <div class="text-[11px] font-bold text-green-800 mb-1">Easy</div>
+                <div class="flex items-center justify-center gap-2">
+                  <button onclick="adjustDifficultyCount('easy', -1)" class="w-6 h-6 rounded bg-white border border-green-300 text-green-700 font-bold hover:bg-green-100 text-xs">-</button>
+                  <span id="countEasy" class="font-bold font-mono text-sm text-green-900">2</span>
+                  <button onclick="adjustDifficultyCount('easy', 1)" class="w-6 h-6 rounded bg-white border border-green-300 text-green-700 font-bold hover:bg-green-100 text-xs">+</button>
+                </div>
+                <div class="text-[10px] text-green-700 mt-1">Loop Bounds</div>
+              </div>
+
+              <!-- Medium -->
+              <div class="p-2.5 bg-blue-50/60 border border-blue-200 rounded-lg text-center">
+                <div class="text-[11px] font-bold text-blue-800 mb-1">Medium</div>
+                <div class="flex items-center justify-center gap-2">
+                  <button onclick="adjustDifficultyCount('medium', -1)" class="w-6 h-6 rounded bg-white border border-blue-300 text-blue-700 font-bold hover:bg-blue-100 text-xs">-</button>
+                  <span id="countMedium" class="font-bold font-mono text-sm text-blue-900">3</span>
+                  <button onclick="adjustDifficultyCount('medium', 1)" class="w-6 h-6 rounded bg-white border border-blue-300 text-blue-700 font-bold hover:bg-blue-100 text-xs">+</button>
+                </div>
+                <div class="text-[10px] text-blue-700 mt-1">Null / Recursion</div>
+              </div>
+
+              <!-- Hard -->
+              <div class="p-2.5 bg-amber-50/60 border border-amber-200 rounded-lg text-center">
+                <div class="text-[11px] font-bold text-amber-800 mb-1">Hard</div>
+                <div class="flex items-center justify-center gap-2">
+                  <button onclick="adjustDifficultyCount('hard', -1)" class="w-6 h-6 rounded bg-white border border-amber-300 text-amber-700 font-bold hover:bg-amber-100 text-xs">-</button>
+                  <span id="countHard" class="font-bold font-mono text-sm text-amber-900">2</span>
+                  <button onclick="adjustDifficultyCount('hard', 1)" class="w-6 h-6 rounded bg-white border border-amber-300 text-amber-700 font-bold hover:bg-amber-100 text-xs">+</button>
+                </div>
+                <div class="text-[10px] text-amber-700 mt-1">Memory Leaks</div>
+              </div>
+
+              <!-- Interview -->
+              <div class="p-2.5 bg-red-50/60 border border-red-200 rounded-lg text-center">
+                <div class="text-[11px] font-bold text-red-800 mb-1">Interview</div>
+                <div class="flex items-center justify-center gap-2">
+                  <button onclick="adjustDifficultyCount('interview', -1)" class="w-6 h-6 rounded bg-white border border-red-300 text-red-700 font-bold hover:bg-red-100 text-xs">-</button>
+                  <span id="countInterview" class="font-bold font-mono text-sm text-red-900">1</span>
+                  <button onclick="adjustDifficultyCount('interview', 1)" class="w-6 h-6 rounded bg-white border border-red-300 text-red-700 font-bold hover:bg-red-100 text-xs">+</button>
+                </div>
+                <div class="text-[10px] text-red-700 mt-1">Concurrency</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Card 3: Time Limit Setting -->
+          <div class="edu-card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">
+                <span>3. Total Time Limit Setting</span>
+              </h3>
+              <span id="builderTimeLimitBadge" class="text-xs font-bold font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                45 Minutes
+              </span>
+            </div>
+
+            <!-- Time Preset Pills -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="setTimeLimit(15)" class="time-limit-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">15 mins</button>
+              <button onclick="setTimeLimit(30)" class="time-limit-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">30 mins</button>
+              <button onclick="setTimeLimit(45)" class="time-limit-pill px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-2xs">45 mins (Default)</button>
+              <button onclick="setTimeLimit(60)" class="time-limit-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">60 mins</button>
+              <button onclick="setTimeLimit(90)" class="time-limit-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">90 mins</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Assessment Preview & Launch (Cols 5) -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <div class="edu-card p-5 space-y-4 bg-slate-50/50">
+            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">
+              <span>Assessment Summary &amp; Rules</span>
+            </h3>
+
+            <div class="space-y-2.5 text-xs text-slate-600">
+              <div class="flex justify-between py-1 border-b border-slate-200">
+                <span>Language Environment</span>
+                <span id="summaryLang" class="font-semibold text-slate-800">Python</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-200">
+                <span>Total Questions</span>
+                <span id="summaryTotalQuestions" class="font-semibold text-slate-800">8 Questions</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-200">
+                <span>Allocated Time</span>
+                <span id="summaryTimeLimit" class="font-semibold text-slate-800">45 Minutes</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-200">
+                <span>Time per Problem</span>
+                <span id="summaryAvgTime" class="font-semibold text-slate-800">~5.6 mins / question</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-200">
+                <span>Sampling Pool</span>
+                <span class="font-semibold text-slate-800">30+ Verified Concepts per Level</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 space-y-1">
+              <div class="font-bold flex items-center gap-1">
+                <span>💡 Assessment Mode Rules:</span>
+              </div>
+              <ul class="list-disc list-inside space-y-0.5 text-[11px] text-amber-700">
+                <li>A countdown timer runs continuously at the top.</li>
+                <li>You can jump between questions anytime before submitting.</li>
+                <li>Run tests to verify each fix before final submission.</li>
+                <li>Results save automatically to Daily Analytics.</li>
+              </ul>
+            </div>
+
+            <!-- Start Assessment Button -->
+            <button id="startAssessmentBtn" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+              <span>🚀 Start Custom Assessment</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- SECTION B: Active Interview Testing Session (Hidden Until Started) -->
+    <div id="builderActiveSessionSection" class="hidden flex-1 flex flex-col space-y-3">
+      
+      <!-- Sticky Top Countdown Timer Bar -->
+      <div class="assessment-timer-bar rounded-xl px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 sticky top-16 z-30 shadow-md">
+        
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5 font-mono text-sm font-bold">
+            <span class="text-lg">⏱️</span>
+            <span id="assessmentTimerDisplay" class="tracking-wider text-base text-white">45:00</span>
+          </div>
+          <span class="text-slate-400">|</span>
+          <div class="text-xs text-slate-300">
+            Assessment: <span id="assessmentActiveTitle" class="font-bold text-white">Technical Mock</span>
+          </div>
+        </div>
+
+        <!-- Question Tracker & Pills -->
+        <div class="flex items-center gap-1.5 flex-wrap" id="assessmentQuestionPillsContainer">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center gap-2">
+          <button id="assessmentPrevBtn" class="px-2.5 py-1 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg">
+            ◀ Prev
+          </button>
+          <button id="assessmentNextBtn" class="px-2.5 py-1 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg">
+            Next ▶
+          </button>
+          <button id="assessmentSubmitBtn" class="px-3.5 py-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-sm">
+            🚩 Submit Assessment
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Active Question Split Workspace -->
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[580px]">
+        
+        <!-- Left: Code Editor (Cols 7) -->
+        <div class="lg:col-span-7 flex flex-col gap-2">
+          <div class="edu-card flex-1 flex flex-col overflow-hidden">
+            <div class="h-10 bg-slate-50 border-b border-slate-200 px-4 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span id="assessmentQBadge" class="font-bold text-slate-800">Question 1 of 8</span>
+                <span id="assessmentDifficultyBadge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-700">Easy</span>
+              </div>
+              <span id="assessmentLangTag" class="text-[11px] font-mono text-slate-500">Python</span>
+            </div>
+
+            <!-- Problem Prompt Strip -->
+            <div class="p-3 bg-blue-50/50 border-b border-blue-100 text-xs text-slate-700">
+              <div class="font-bold text-slate-900" id="assessmentPromptTitle">Off-by-One Loop Boundary</div>
+              <p class="text-slate-600 mt-0.5" id="assessmentPromptDesc">Fix the bug so all test cases execute successfully.</p>
+            </div>
+
+            <!-- Code Editor Area -->
+            <div class="flex-1 flex overflow-hidden bg-white relative">
+              <div id="assessmentLineNumbers" class="w-12 bg-slate-50 border-r border-slate-200 py-3 select-none text-right overflow-hidden"></div>
+              <textarea id="assessmentCodeEditor" spellcheck="false" class="flex-1 p-3 font-mono text-xs md:text-sm text-slate-800 leading-6 resize-none focus:outline-none bg-transparent whitespace-pre overflow-y-auto selection:bg-blue-100"></textarea>
+            </div>
+
+            <!-- Editor Action Bar -->
+            <div class="h-12 bg-slate-50 border-t border-slate-200 px-4 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <button id="assessmentRunCodeBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-2xs">
+                  ▶ Run Code
+                </button>
+                <button id="assessmentMarkSolvedBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">
+                  ✓ Mark as Solved
+                </button>
+              </div>
+              <span id="assessmentStatusIndicator" class="text-[11px] font-mono text-slate-500">Unsolved</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Test Invariants & Console (Cols 5) -->
+        <div class="lg:col-span-5 flex flex-col gap-3">
+          
+          <!-- Tests Card -->
+          <div class="edu-card p-4">
+            <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wide mb-2">Test Invariants</h4>
+            <div id="assessmentTestCasesList" class="space-y-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Console Terminal -->
+          <div class="edu-card flex-1 flex flex-col overflow-hidden min-h-[180px]">
+            <div class="h-8 bg-slate-100 border-b border-slate-200 px-3 flex items-center justify-between text-xs font-semibold text-slate-700">
+              <span>Execution Output</span>
+              <span class="text-[10px] font-mono text-slate-400">Sandbox</span>
+            </div>
+            <div class="flex-1 p-3 edu-console overflow-y-auto">
+              <pre id="assessmentConsoleOutput" class="text-slate-400 font-mono text-xs whitespace-pre-wrap">// Run code to see execution output.</pre>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 3: DAILY ANALYTICS & PROGRESS REPORT                                  -->
+  <!-- ========================================================================= -->
+  <div id="viewAnalyticsReport" class="flex-1 flex flex-col hidden p-4 lg:p-6 max-w-[1500px] w-full mx-auto space-y-6">
+    
+    <!-- Top Summary Banner -->
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📊</span>
+          <h2 class="text-xl font-bold text-slate-900">Daily Analytics &amp; Student Progress Report</h2>
+        </div>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Comprehensive debugging performance telemetry, historical mock assessments, and competency mastery.
+        </p>
+      </div>
+
+      <!-- Management Controls -->
+      <div class="flex items-center gap-2">
+        <button onclick="exportAnalyticsJson()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-2xs">
+          📥 Export Report (JSON)
+        </button>
+        <button onclick="reseedDemoAnalytics()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 shadow-2xs">
+          🔄 Re-seed Sample Data
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. SUMMARY METRIC CARDS (4 Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Card 1: Total Tests Taken -->
+      <div class="edu-card p-4 flex items-center justify-between">
+        <div>
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Total Tests Taken</div>
+          <div id="statTotalTests" class="text-2xl font-extrabold text-slate-900 mt-1 font-mono">14</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-0.5">↑ 3 this week</div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+          📝
+        </div>
+      </div>
+
+      <!-- Card 2: Average Debugging Accuracy -->
+      <div class="edu-card p-4 flex items-center justify-between">
+        <div>
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Debugging Accuracy</div>
+          <div id="statAvgAccuracy" class="text-2xl font-extrabold text-slate-900 mt-1 font-mono">87.4%</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-0.5">↑ +4.2% competency</div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+          🎯
+        </div>
+      </div>
+
+      <!-- Card 3: Average Time Per Bug -->
+      <div class="edu-card p-4 flex items-center justify-between">
+        <div>
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Avg Time Per Bug</div>
+          <div id="statAvgTime" class="text-2xl font-extrabold text-slate-900 mt-1 font-mono">4.2 min</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-0.5">↓ 1.1 min faster</div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+          ⏱️
+        </div>
+      </div>
+
+      <!-- Card 4: Total Solved Scenarios -->
+      <div class="edu-card p-4 flex items-center justify-between">
+        <div>
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Total Solved Bugs</div>
+          <div id="statTotalSolved" class="text-2xl font-extrabold text-slate-900 mt-1 font-mono">42</div>
+          <div class="text-[11px] text-purple-600 font-medium mt-0.5">Level 4 Debugger</div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+          🏆
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 2. INTERACTIVE PERFORMANCE GRAPHS GRID (3 Graphs) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      
+      <!-- Graph 1: Daily Tests & Solved Activity (Cols 6) -->
+      <div class="lg:col-span-6 edu-card p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Daily Assessment Activity (Last 14 Days)</h3>
+            <p class="text-[11px] text-slate-500">Number of mock assessments and practice bugs completed daily.</p>
+          </div>
+          <span class="text-xs font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Activity Trend</span>
+        </div>
+        <div class="h-56 w-full bg-slate-50 rounded-lg border border-slate-200 p-2 relative">
+          <canvas id="analyticsActivityChart" width="550" height="210" class="w-full h-full"></canvas>
+        </div>
+      </div>
+
+      <!-- Graph 2: Difficulty Mastery Breakdown (Cols 3) -->
+      <div class="lg:col-span-3 edu-card p-5 space-y-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Difficulty Mastery</h3>
+          <p class="text-[11px] text-slate-500">Pass rate by question difficulty.</p>
+        </div>
+        <div class="h-40 w-full relative flex items-center justify-center">
+          <canvas id="analyticsMasteryDonut" width="160" height="160"></canvas>
+        </div>
+        <!-- Donut Legend -->
+        <div class="grid grid-cols-2 gap-1.5 text-[11px] text-slate-600 pt-1">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> Easy: 95%</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Med: 82%</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Hard: 74%</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Intvw: 68%</span>
+        </div>
+      </div>
+
+      <!-- Graph 3: Language Proficiency Bar Chart (Cols 3) -->
+      <div class="lg:col-span-3 edu-card p-5 space-y-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Language Proficiency</h3>
+          <p class="text-[11px] text-slate-500">Accuracy rate by programming language.</p>
+        </div>
+        <div class="h-52 w-full bg-slate-50 rounded-lg border border-slate-200 p-2">
+          <canvas id="analyticsLangChart" width="280" height="200" class="w-full h-full"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. HISTORICAL TEST LOG TABLE -->
+    <div class="edu-card overflow-hidden">
+      <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-sm text-slate-900">Historical Assessment Logs</h3>
+          <p class="text-xs text-slate-500">Log of all completed custom interview sessions stored in LocalStorage.</p>
+        </div>
+        <span class="text-xs font-mono text-slate-500" id="historicalLogsCountBadge">Showing 5 entries</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100/70 border-b border-slate-200 font-semibold text-slate-700">
+            <tr>
+              <th class="py-2.5 px-4">Date &amp; Time</th>
+              <th class="py-2.5 px-4">Assessment Name</th>
+              <th class="py-2.5 px-4">Language</th>
+              <th class="py-2.5 px-4">Score</th>
+              <th class="py-2.5 px-4">Time Spent</th>
+              <th class="py-2.5 px-4">Accuracy</th>
+              <th class="py-2.5 px-4">Status</th>
+            </tr>
+          </thead>
+          <tbody id="historicalLogsTableBody" class="divide-y divide-slate-200">
+            <!-- Populated dynamically by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. ASSESSMENT COMPLETION MODAL                                            -->
+  <!-- ========================================================================= -->
+  <div id="assessmentResultModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="edu-card max-w-lg w-full p-6 space-y-4 shadow-2xl relative animate-bounce-short">
+      <div class="text-center space-y-1">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center text-2xl font-bold shadow-xs">
+          🏆
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 pt-2" id="modalResultTitle">Assessment Completed!</h3>
+        <p class="text-xs text-slate-500" id="modalResultSubtitle">Your results have been recorded to Daily Analytics.</p>
+      </div>
+
+      <!-- Result Breakdown Card -->
+      <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+        <div class="flex justify-between py-1 border-b border-slate-200">
+          <span class="text-slate-600">Final Score:</span>
+          <span id="modalScoreVal" class="font-bold text-slate-900 font-mono">7 / 8 Passed (87.5%)</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-200">
+          <span class="text-slate-600">Time Taken:</span>
+          <span id="modalTimeTakenVal" class="font-bold text-slate-900 font-mono">28m 14s</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-200">
+          <span class="text-slate-600">Assessment Rating:</span>
+          <span id="modalRatingBadge" class="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">EXCELLENT</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-2.5 pt-2">
+        <button onclick="closeAssessmentModal('analytics')" class="py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs">
+          View in Daily Analytics
+        </button>
+        <button onclick="closeAssessmentModal('sandbox')" class="py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
+          Return to Sandbox
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 5. COLLAPSIBLE AI SIDEBAR (CLOVER SOCRATIC AI DEBUGGER)                  -->
+  <!-- ========================================================================= -->
+  <aside id="aiSidebarDrawer" class="ai-drawer ai-drawer-closed fixed top-0 right-0 h-full w-full sm:w-[440px] bg-white border-l border-slate-200 z-50 flex flex-col shadow-2xl">
+    
+    <!-- AI Header -->
+    <div class="h-16 border-b border-slate-200 px-4 flex items-center justify-between bg-slate-50">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
+          🍀
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-slate-900 leading-none">Clover - Socratic AI Debugger</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">Line-by-Line Socratic Code Analysis</p>
+        </div>
+      </div>
+
+      <!-- Close Button -->
+      <button id="closeAiDrawerBtn" class="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Socratic Line Analysis Box -->
+    <div id="lineAnalysisBox" class="p-3 bg-emerald-50/50 border-b border-emerald-100">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+          <span>🔍 Line-by-Line Inspection</span>
+        </div>
+        <span id="activeLineBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-emerald-700 border border-emerald-200 font-semibold">
+          Line 1
+        </span>
+      </div>
+      <div id="lineAnalysisSummary" class="text-xs text-slate-700 leading-relaxed bg-white p-2.5 rounded-lg border border-emerald-100">
+        Click any line in the code editor gutter to get Clover's line-level Socratic breakdown.
+      </div>
+    </div>
+
+    <!-- Socratic Hint Steps (Observation, Concept, Guiding Question) -->
+    <div class="p-3 bg-slate-50 border-b border-slate-200">
+      <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+        <span>💡 Step-by-Step Socratic Hints</span>
+        <span class="text-[10px] text-slate-400 font-normal">Click hint to inquire</span>
+      </div>
+      <div id="socraticHintsContainer" class="space-y-1.5">
+        <!-- Hints populated by JS -->
+      </div>
+    </div>
+
+    <!-- AI Chat Conversation Stream -->
+    <div id="aiChatStream" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/40">
+      <!-- Chat bubbles populated by JS -->
+    </div>
+
+    <!-- AI Chat Input Box -->
+    <div class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+      <input id="chatInput" type="text" placeholder="Ask Clover about this line or concept..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
+      <button id="sendChatBtn" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-2xs">
+        Ask
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
